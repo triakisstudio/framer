@@ -8,11 +8,11 @@ export default async function Home() {
 
   return (
     <div className="mx-auto max-w-5xl px-5">
-      <section className="py-20 text-center">
+      <section className="py-14 text-center sm:py-20">
         <p className="mb-4 inline-block rounded-full border border-border bg-surface px-4 py-1 text-sm text-muted">
           A calmer layer on top of Instagram
         </p>
-        <h1 className="mx-auto max-w-3xl text-5xl font-black leading-tight tracking-tight sm:text-6xl">
+        <h1 className="mx-auto max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
           See the people you follow as a{" "}
           <span className="tri-gradient-text">tree</span>, not a feed.
         </h1>

@@ -128,7 +128,9 @@ export function TreeGraph({
   const [onlyTri, setOnlyTri] = useState(false);
   const [selected, setSelected] = useState<Placed | null>(null);
   const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  // Active pointers (for one-finger pan and two-finger pinch).
+  const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchDist = useRef<number | null>(null);
 
   const visible = useMemo(
     () => (onlyTri ? nodes.filter((n) => n.onTri) : nodes),
@@ -136,24 +138,45 @@ export function TreeGraph({
   );
   const placed = useMemo(() => layout(visible), [visible]);
 
+  const clampScale = (s: number) => Math.min(3, Math.max(0.25, s));
+
   function onWheel(e: React.WheelEvent) {
     e.preventDefault();
     const factor = e.deltaY < 0 ? 1.1 : 0.9;
-    setView((v) => ({
-      ...v,
-      scale: Math.min(3, Math.max(0.25, v.scale * factor)),
-    }));
+    setView((v) => ({ ...v, scale: clampScale(v.scale * factor) }));
   }
+
   function onPointerDown(e: React.PointerEvent) {
-    drag.current = { x: e.clientX - view.x, y: e.clientY - view.y };
-    (e.target as Element).setPointerCapture?.(e.pointerId);
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
   }
+
   function onPointerMove(e: React.PointerEvent) {
-    if (!drag.current) return;
-    setView((v) => ({ ...v, x: e.clientX - drag.current!.x, y: e.clientY - drag.current!.y }));
+    const prev = pointers.current.get(e.pointerId);
+    if (!prev) return;
+    const next = { x: e.clientX, y: e.clientY };
+    pointers.current.set(e.pointerId, next);
+    const pts = [...pointers.current.values()];
+
+    if (pts.length >= 2) {
+      // Pinch: scale by the change in finger distance.
+      const [a, b] = pts;
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinchDist.current != null) {
+        const factor = dist / pinchDist.current;
+        setView((v) => ({ ...v, scale: clampScale(v.scale * factor) }));
+      }
+      pinchDist.current = dist;
+    } else {
+      // Pan: follow the single finger / cursor.
+      pinchDist.current = null;
+      setView((v) => ({ ...v, x: v.x + (next.x - prev.x), y: v.y + (next.y - prev.y) }));
+    }
   }
-  function onPointerUp() {
-    drag.current = null;
+
+  function onPointerUp(e: React.PointerEvent) {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size < 2) pinchDist.current = null;
   }
 
   return (
@@ -188,7 +211,7 @@ export function TreeGraph({
       </div>
 
       <svg
-        className="h-[72vh] w-full touch-none select-none"
+        className="h-[68dvh] w-full touch-none select-none md:h-[72vh]"
         viewBox="-600 -400 1200 800"
         preserveAspectRatio="xMidYMid meet"
         onWheel={onWheel}

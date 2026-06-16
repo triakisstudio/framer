@@ -28,7 +28,27 @@ followed later claims their handle on Tri, their node in your tree lights up.
 - **Tailwind CSS v4**
 - **Prisma 6** + **SQLite** (zero external services for local dev)
 - Lightweight HMAC-signed cookie sessions, bcrypt password hashing
-- The tree is a hand-rolled, pan/zoom **SVG radial graph** (no heavy graph lib)
+- The tree is a hand-rolled, pan/zoom/pinch **SVG radial graph** (no heavy graph lib)
+- **Installable PWA**: web manifest, service worker, offline fallback, mobile
+  bottom-nav, and add-to-home-screen prompt — runs full-screen on iOS & Android
+
+## Phone web app (PWA)
+
+Tri is a mobile-first **Progressive Web App**, so you can run and test it on any
+phone with no app store:
+
+1. Deploy it (or run it locally over HTTPS — see below) and open the URL on your
+   phone's browser.
+2. **Android/Chrome:** an "Install Tri" prompt appears (or use ⋮ → *Install app*).
+   **iOS/Safari:** tap Share → *Add to Home Screen*.
+3. It launches full-screen in standalone mode with the Tri icon, a bottom tab bar
+   (Tree · Import · You), and offline shell.
+
+> Install/standalone mode and the service worker require **HTTPS**. Locally you
+> can use `next dev --experimental-https`, or just deploy to any HTTPS host. Over
+> plain `http://localhost` the app works fully; only the install prompt is gated.
+
+App icons are generated (no design tools needed) with `npm run icons`.
 
 ## Getting started
 

@@ -62,13 +62,15 @@ export default async function TreePage() {
   const reconnected = nodes.filter((n) => n.onTri).length;
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <div className="mx-auto max-w-6xl px-4 py-5 sm:px-5 sm:py-8">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-4 sm:mb-5">
         <div>
-          <h1 className="text-3xl font-bold">{user.displayName}&apos;s tree</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">
+            {user.displayName}&apos;s tree
+          </h1>
           <p className="text-muted">@{user.igUsername}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:gap-3 sm:px-0">
           <Stat label="You follow" value={follows.length} />
           <Stat label="On Tri now" value={reconnected} accent />
           <Stat label="Followed you" value={followersOnTri} />
@@ -110,7 +112,7 @@ function Stat({
 }) {
   return (
     <div
-      className={`rounded-2xl border px-4 py-2 text-center ${
+      className={`shrink-0 rounded-2xl border px-4 py-2 text-center ${
         accent ? "border-brand bg-brand/10" : "border-border bg-surface"
       }`}
     >

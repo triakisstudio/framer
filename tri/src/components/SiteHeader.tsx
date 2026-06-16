@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/session";
 import { logoutAction } from "@/lib/actions";
 import { Avatar } from "./Avatar";
 
-export async function SiteHeader() {
-  const user = await getCurrentUser();
+type HeaderUser = { igUsername: string; avatarUrl: string | null } | null;
 
+export function SiteHeader({ user }: { user: HeaderUser }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-border bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
         <Link href={user ? "/tree" : "/"} className="flex items-center gap-2">
           <span className="text-xl font-black tracking-tight tri-gradient-text">
@@ -21,16 +20,20 @@ export async function SiteHeader() {
         <nav className="flex items-center gap-3 text-sm">
           {user ? (
             <>
-              <Link href="/tree" className="text-muted hover:text-foreground">
+              {/* Primary nav lives in the bottom bar on mobile. */}
+              <Link
+                href="/tree"
+                className="hidden text-muted hover:text-foreground md:inline"
+              >
                 My tree
               </Link>
               <Link
                 href="/import"
-                className="text-muted hover:text-foreground"
+                className="hidden text-muted hover:text-foreground md:inline"
               >
                 Import
               </Link>
-              <div className="flex items-center gap-2 pl-2">
+              <div className="flex items-center gap-2 pl-1">
                 <Avatar
                   username={user.igUsername}
                   avatarUrl={user.avatarUrl}

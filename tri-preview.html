@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b0a12" />
+<title>Tri — preview</title>
+<style>
+  :root{
+    --background:#0b0a12; --surface:#15131f; --surface-2:#1d1a2b; --border:#2a2640;
+    --foreground:#f2f0fb; --muted:#a59fc4; --brand:#c084fc; --brand-2:#f472b6;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; height:100%;}
+  body{
+    background:
+      radial-gradient(40rem 40rem at 15% -10%, rgba(192,132,252,.18), transparent 60%),
+      radial-gradient(36rem 36rem at 95% 5%, rgba(244,114,182,.14), transparent 55%),
+      var(--background);
+    color:var(--foreground);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
+  }
+  .app{max-width:480px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column;}
+  /* header */
+  header{
+    position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between;
+    padding:calc(env(safe-area-inset-top) + 12px) 18px 12px; border-bottom:1px solid var(--border);
+    background:rgba(11,10,18,.8); backdrop-filter:blur(10px);
+  }
+  .logo{font-weight:900; font-size:22px; letter-spacing:-.02em;
+    background:linear-gradient(90deg,var(--brand),var(--brand-2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .tag{color:var(--muted); font-size:11px;}
+  .preview-pill{font-size:10px; color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:3px 8px;}
+  main{flex:1; padding-bottom:96px;}
+  /* buttons */
+  .btn{display:inline-block; border:none; border-radius:999px; padding:13px 22px; font-weight:700; font-size:15px;
+    color:var(--background); background:linear-gradient(90deg,var(--brand),var(--brand-2)); cursor:pointer; text-decoration:none;}
+  .btn-ghost{background:transparent; border:1px solid var(--border); color:var(--foreground);}
+  .grad{background:linear-gradient(90deg,var(--brand),var(--brand-2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .muted{color:var(--muted);}
+  /* screens */
+  .screen{display:none; animation:fade .25s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+  /* landing */
+  .hero{padding:48px 22px 24px; text-align:center;}
+  .hero h1{font-size:34px; line-height:1.1; font-weight:900; margin:14px 0 0; letter-spacing:-.02em;}
+  .hero p{color:var(--muted); font-size:16px; margin:16px auto 0; max-width:340px;}
+  .chip{display:inline-block; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:5px 14px; font-size:13px; color:var(--muted);}
+  .steps{display:grid; gap:12px; padding:8px 18px 24px;}
+  .step{border:1px solid var(--border); background:var(--surface); border-radius:18px; padding:18px;}
+  .step .n{display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:999px; font-weight:800; color:var(--background); background:linear-gradient(90deg,var(--brand),var(--brand-2)); margin-bottom:10px;}
+  .step h3{margin:0 0 4px; font-size:16px;}
+  .step p{margin:0; color:var(--muted); font-size:14px;}
+  .cta-row{display:flex; gap:10px; justify-content:center; margin-top:22px;}
+  /* tree */
+  .tree-head{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; padding:16px 16px 10px;}
+  .tree-head h2{margin:0; font-size:22px;}
+  .stats{display:flex; gap:8px; overflow-x:auto; padding:0 16px 12px; scrollbar-width:none;}
+  .stats::-webkit-scrollbar{display:none;}
+  .stat{flex:0 0 auto; border:1px solid var(--border); background:var(--surface); border-radius:16px; padding:8px 14px; text-align:center;}
+  .stat.accent{border-color:var(--brand); background:rgba(192,132,252,.12);}
+  .stat b{display:block; font-size:22px;}
+  .stat span{font-size:11px; color:var(--muted);}
+  .banner{margin:0 16px 10px; border:1px solid rgba(192,132,252,.4); background:rgba(192,132,252,.1); border-radius:14px; padding:10px 14px; font-size:13px;}
+  .canvas-wrap{position:relative; margin:0 12px; border:1px solid var(--border); border-radius:24px; background:var(--surface); overflow:hidden;}
+  svg.tree{width:100%; height:62dvh; touch-action:none; user-select:none; display:block;}
+  .controls{position:absolute; top:12px; right:12px; display:flex; gap:6px;}
+  .controls button{width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--muted); font-size:16px; cursor:pointer;}
+  .filter{position:absolute; top:12px; left:12px;}
+  .filter button{border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--muted); font-size:12px; padding:7px 12px; cursor:pointer;}
+  .filter button.on{border-color:var(--brand); background:rgba(192,132,252,.15); color:var(--brand);}
+  .hint{text-align:center; color:var(--muted); font-size:12px; margin:10px 0 0;}
+  /* import */
+  .pad{padding:18px;}
+  .pad h2{font-size:22px; margin:0 0 6px;}
+  .drop{border:1.5px dashed var(--border); background:var(--surface-2); border-radius:22px; padding:40px 20px; text-align:center; margin-top:16px;}
+  .drop .big{font-size:40px;}
+  ol.guide{border:1px solid var(--border); background:var(--surface); border-radius:18px; padding:18px 18px 18px 34px; color:var(--muted); font-size:14px; line-height:1.6; margin-top:18px;}
+  code{background:var(--surface-2); padding:2px 6px; border-radius:6px; font-size:12px; color:var(--foreground);}
+  /* profile */
+  .profile{margin:18px; border:1px solid var(--border); background:var(--surface); border-radius:26px; padding:28px; text-align:center;}
+  .pill{display:inline-block; border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:13px; color:var(--muted); margin-top:14px;}
+  .pill.mutual{border-color:var(--brand); background:rgba(192,132,252,.1); color:var(--brand);}
+  /* bottom nav */
+  nav.tabs{position:fixed; left:0; right:0; bottom:0; z-index:30; max-width:480px; margin:0 auto;
+    border-top:1px solid var(--border); background:rgba(11,10,18,.9); backdrop-filter:blur(10px);
+    padding-bottom:env(safe-area-inset-bottom); display:none;}
+  nav.tabs.show{display:block;}
+  .tabs-inner{display:flex; justify-content:space-around;}
+  .tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 0; font-size:11px; color:var(--muted); border:none; background:none; cursor:pointer;}
+  .tab.active{color:var(--brand);}
+  .tab svg{width:22px; height:22px;}
+  /* detail sheet */
+  .sheet-bg{position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.5); display:none;}
+  .sheet-bg.show{display:block;}
+  .sheet{position:fixed; left:12px; right:12px; bottom:calc(96px + env(safe-area-inset-bottom)); z-index:41; max-width:456px; margin:0 auto;
+    border:1px solid var(--border); background:var(--surface-2); border-radius:22px; padding:16px; display:none;}
+  .sheet.show{display:block;}
+  .sheet .row{display:flex; align-items:center; justify-content:space-between;}
+  .av{display:flex; align-items:center; justify-content:center; border-radius:999px; color:#fff; font-weight:700;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="logo">Tri</span>
+      <span class="tag">find your people again</span>
+    </div>
+    <span class="preview-pill">PREVIEW</span>
+  </header>
+
+  <main>
+    <!-- LANDING -->
+    <section id="screen-landing" class="screen active">
+      <div class="hero">
+        <span class="chip">A calmer layer on top of Instagram</span>
+        <h1>See the people you follow as a <span class="grad">tree</span>, not a feed.</h1>
+        <p>Tri turns the accounts you follow on Instagram into a living tree of faces and names — no posts, no scrolling. When your friends move to Tri, you find each other again.</p>
+        <div class="cta-row">
+          <button class="btn" onclick="go('tree')">Open the demo tree</button>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><h3>Claim your handle</h3><p>Create a Tri profile with your Instagram username — that's how friends find you.</p></div>
+        <div class="step"><div class="n">2</div><h3>Import your data</h3><p>Upload the <code>following.json</code> from your own Instagram data export. No scraping, no IG login.</p></div>
+        <div class="step"><div class="n">3</div><h3>Reconnect</h3><p>See everyone as a tree. Anyone already on Tri lights up — new arrivals appear over time.</p></div>
+      </div>
+    </section>
+
+    <!-- TREE -->
+    <section id="screen-tree" class="screen">
+      <div class="tree-head">
+        <div><h2>Demo User's tree</h2><div class="muted">@demo_me</div></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>16</b><span>You follow</span></div>
+        <div class="stat accent"><b class="grad">4</b><span>On Tri now</span></div>
+        <div class="stat"><b>2</b><span>Followed you</span></div>
+      </div>
+      <div class="banner">🎉 4 people you follow are already on Tri — they glow in your tree.</div>
+      <div class="canvas-wrap">
+        <div class="filter"><button id="filterBtn" onclick="toggleFilter()">Show only Tri friends</button></div>
+        <div class="controls">
+          <button onclick="zoom(0.9)">−</button>
+          <button onclick="zoom(1.1)">+</button>
+          <button onclick="resetView()">⟲</button>
+        </div>
+        <svg class="tree" id="tree" viewBox="-600 -400 1200 800" preserveAspectRatio="xMidYMid meet">
+          <g id="viewport"></g>
+        </svg>
+      </div>
+      <p class="hint">Drag to pan · pinch or +/− to zoom · tap a face for details</p>
+    </section>
+
+    <!-- IMPORT -->
+    <section id="screen-import" class="screen">
+      <div class="pad">
+        <h2>Import who you follow</h2>
+        <p class="muted">Upload your Instagram data export to plant your tree.</p>
+        <div class="drop">
+          <div class="big">🌳</div>
+          <p style="font-weight:700; margin:10px 0 2px;">Choose your following.json</p>
+          <p class="muted" style="margin:0; font-size:13px;">The JSON file from your Instagram data export</p>
+        </div>
+        <ol class="guide">
+          <li>In Instagram: <em>Settings → Accounts Center → Your information and permissions → Download your information</em>.</li>
+          <li>Request <em>Followers and following</em>, format <b style="color:var(--foreground)">JSON</b>.</li>
+          <li>Unzip and find <code>connections/followers_and_following/following.json</code>.</li>
+          <li>Upload it here.</li>
+        </ol>
+        <p class="hint">(Buttons are inert in this preview — this is just to show the flow.)</p>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="screen-profile" class="screen">
+      <div class="profile" id="profileCard"></div>
+    </section>
+  </main>
+
+  <nav class="tabs" id="tabs">
+    <div class="tabs-inner">
+      <button class="tab" data-tab="tree" onclick="go('tree')">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2.6" fill="currentColor"/><circle cx="5.5" cy="18" r="2.6" fill="currentColor"/><circle cx="18.5" cy="18" r="2.6" fill="currentColor"/><path d="M12 7.5 6.5 15.5M12 7.5l5.5 8" stroke="currentColor" stroke-width="1.6"/></svg>
+        Tree
+      </button>
+      <button class="tab" data-tab="import" onclick="go('import')">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v11m0 0 4-4m-4 4-4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        Import
+      </button>
+      <button class="tab" data-tab="profile" onclick="showProfile('demo_me')">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        You
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- detail sheet -->
+<div class="sheet-bg" id="sheetBg" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"></div>
+
+<script>
+/* ---------- demo data ---------- */
+var ME = {username:"demo_me", name:"Demo User", bio:"Just trying to find my people again."};
+var FOLLOWS = [
+  {u:"alice", name:"Alice Rivera", tri:true,  bio:"Ceramics & coffee."},
+  {u:"bob_b", name:"Bob Brown",   tri:true,  bio:"Trail runner."},
+  {u:"cara.k", name:"Cara Kim",   tri:true,  bio:"Film photographer."},
+  {u:"devleon", name:"Dev Leon",  tri:true,  bio:"Builds tiny apps."},
+  {u:"old_school_friend"}, {u:"marathon_mike"}, {u:"the_pottery_barn"}, {u:"jane.doe"},
+  {u:"city_cyclist"}, {u:"book_club_nora"}, {u:"sunset_chaser"}, {u:"gym_buddy_sam"},
+  {u:"neighbor_tom"}, {u:"uni_roommate"}, {u:"festival_friends"}, {u:"coworker_lin"}
+];
+
+/* ---------- avatar helpers (same algorithm as the app) ---------- */
+var PALETTE=["#f43f5e","#ec4899","#d946ef","#a855f7","#8b5cf6","#6366f1","#3b82f6","#0ea5e9","#06b6d4","#14b8a6","#10b981","#f59e0b","#f97316"];
+function hash(s){var h=5381;for(var i=0;i<s.length;i++){h=(h*33)^s.charCodeAt(i);}return h>>>0;}
+function color(u){return PALETTE[hash(u)%PALETTE.length];}
+function initials(u){var c=u.replace(/[^a-zA-Z0-9]/g,"");return (c.slice(0,2)||"?").toUpperCase();}
+
+/* ---------- radial layout (mirrors TreeGraph.tsx) ---------- */
+var CENTER_R=44, NODE_R=26;
+function layout(nodes){
+  var sorted=nodes.slice().sort(function(a,b){return (b.tri?1:0)-(a.tri?1:0) || a.u.localeCompare(b.u);});
+  var placed=[], index=0, ring=1, base=150, gap=120;
+  while(index<sorted.length){
+    var radius=base+(ring-1)*gap;
+    var circ=2*Math.PI*radius;
+    var cap=Math.max(6, Math.floor(circ/78));
+    var count=Math.min(cap, sorted.length-index);
+    var offset=ring%2===0 ? Math.PI/count : 0;
+    for(var i=0;i<count;i++){
+      var ang=offset+(i/count)*Math.PI*2;
+      var n=sorted[index++];
+      placed.push({n:n, x:Math.cos(ang)*radius, y:Math.sin(ang)*radius});
+    }
+    ring++;
+  }
+  return placed;
+}
+
+function svgEl(tag,attrs){var e=document.createElementNS("http://www.w3.org/2000/svg",tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
+
+function nodeGroup(p,r){
+  var n=p.n, g=svgEl("g",{transform:"translate("+p.x+","+p.y+")", style:"cursor:pointer"});
+  g.appendChild(svgEl("circle",{r:r, fill:color(n.u)}));
+  var t=svgEl("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":r*0.7,"font-weight":700,fill:"#fff"});
+  t.textContent=initials(n.u); g.appendChild(t);
+  g.appendChild(svgEl("circle",{r:r, fill:"none","stroke-width":n.tri?3:1.5, stroke:n.tri?"#c084fc":"#2a2640"}));
+  var lbl=svgEl("text",{y:r+16,"text-anchor":"middle","font-size":12, fill:n.tri?"#f2f0fb":"#a59fc4"});
+  lbl.textContent="@"+(n.u.length>16?n.u.slice(0,15)+"…":n.u); g.appendChild(lbl);
+  if(n.tri){var pulse=svgEl("animate",{attributeName:"opacity",values:"1;.55;1",dur:"2.2s",repeatCount:"indefinite"}); g.appendChild(pulse);}
+  g.addEventListener("click", function(){openSheet(n);});
+  return g;
+}
+
+var onlyTri=false;
+function renderTree(){
+  var vp=document.getElementById("viewport");
+  vp.innerHTML="";
+  var list=onlyTri?FOLLOWS.filter(function(f){return f.tri;}):FOLLOWS;
+  var placed=layout(list);
+  // edges
+  placed.forEach(function(p){
+    vp.appendChild(svgEl("line",{x1:0,y1:0,x2:p.x,y2:p.y, stroke:p.n.tri?"#c084fc":"#2a2640","stroke-opacity":p.n.tri?0.5:0.3,"stroke-width":1}));
+  });
+  // nodes
+  placed.forEach(function(p){ vp.appendChild(nodeGroup(p,NODE_R)); });
+  // center (you)
+  var c=svgEl("g",{});
+  c.appendChild(svgEl("circle",{r:CENTER_R, fill:color(ME.username)}));
+  var ct=svgEl("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":CENTER_R*0.6,"font-weight":800,fill:"#fff"});
+  ct.textContent=initials(ME.username); c.appendChild(ct);
+  c.appendChild(svgEl("circle",{r:CENTER_R, fill:"none", stroke:"#f472b6","stroke-width":4}));
+  var cl=svgEl("text",{y:CENTER_R+20,"text-anchor":"middle","font-size":14,"font-weight":700,fill:"#f2f0fb"});
+  cl.textContent="You"; c.appendChild(cl);
+  vp.appendChild(c);
+  applyView();
+}
+function toggleFilter(){
+  onlyTri=!onlyTri;
+  var b=document.getElementById("filterBtn");
+  b.textContent=onlyTri?"Showing only Tri friends":"Show only Tri friends";
+  b.classList.toggle("on",onlyTri);
+  renderTree();
+}
+
+/* ---------- pan / zoom / pinch ---------- */
+var view={x:0,y:0,s:1}, pointers={}, pinch=null;
+function applyView(){document.getElementById("viewport").setAttribute("transform","translate("+view.x+" "+view.y+") scale("+view.s+")");}
+function clamp(s){return Math.min(3,Math.max(0.3,s));}
+function zoom(f){view.s=clamp(view.s*f); applyView();}
+function resetView(){view={x:0,y:0,s:1}; applyView();}
+(function(){
+  var svg=document.getElementById("tree");
+  svg.addEventListener("pointerdown",function(e){pointers[e.pointerId]={x:e.clientX,y:e.clientY}; svg.setPointerCapture(e.pointerId);});
+  svg.addEventListener("pointermove",function(e){
+    var prev=pointers[e.pointerId]; if(!prev)return;
+    var nx=e.clientX, ny=e.clientY; pointers[e.pointerId]={x:nx,y:ny};
+    var pts=Object.keys(pointers).map(function(k){return pointers[k];});
+    if(pts.length>=2){
+      var d=Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      if(pinch!=null){view.s=clamp(view.s*(d/pinch)); applyView();}
+      pinch=d;
+    } else { pinch=null; view.x+=nx-prev.x; view.y+=ny-prev.y; applyView(); }
+  });
+  function up(e){delete pointers[e.pointerId]; if(Object.keys(pointers).length<2)pinch=null;}
+  svg.addEventListener("pointerup",up); svg.addEventListener("pointerleave",up); svg.addEventListener("pointercancel",up);
+  svg.addEventListener("wheel",function(e){e.preventDefault(); zoom(e.deltaY<0?1.1:0.9);},{passive:false});
+})();
+
+/* ---------- detail sheet ---------- */
+function openSheet(n){
+  var s=document.getElementById("sheet");
+  var av='<div class="av" style="width:40px;height:40px;background:'+color(n.u)+';font-size:15px">'+initials(n.u)+'</div>';
+  s.innerHTML=
+    '<div class="row"><div style="display:flex;align-items:center;gap:10px">'+av+'<b>@'+n.u+'</b></div>'+
+    '<button onclick="closeSheet()" style="background:none;border:none;color:var(--muted);font-size:18px">✕</button></div>'+
+    '<p class="muted" style="margin:10px 0 0;font-size:14px">'+(n.tri?"🎉 They're on Tri — you've reconnected!":"Not on Tri yet. They'll light up here when they join.")+'</p>'+
+    (n.tri?'<button class="btn" style="margin-top:12px;padding:9px 16px;font-size:14px" onclick="showProfile(\''+n.u+'\')">View profile</button>':'');
+  s.classList.add("show"); document.getElementById("sheetBg").classList.add("show");
+}
+function closeSheet(){document.getElementById("sheet").classList.remove("show"); document.getElementById("sheetBg").classList.remove("show");}
+
+/* ---------- profile ---------- */
+function showProfile(u){
+  closeSheet();
+  var p = u==="demo_me" ? ME : (FOLLOWS.filter(function(f){return f.u===u;})[0]||{u:u,name:u});
+  var name=p.name||p.u, handle=p.u||u, bio=p.bio||"";
+  var followers = u==="demo_me"?2:Math.max(1,(hash(handle)%6)+1);
+  var card=document.getElementById("profileCard");
+  card.innerHTML=
+    '<div class="av" style="width:96px;height:96px;margin:0 auto;background:'+color(handle)+';font-size:34px;box-shadow:0 0 0 3px var(--brand)">'+initials(handle)+'</div>'+
+    '<h1 style="margin:14px 0 0;font-size:24px">'+name+'</h1>'+
+    '<div class="muted">@'+handle+'</div>'+
+    (bio?'<p class="muted" style="margin-top:10px">'+bio+'</p>':'')+
+    '<p class="muted" style="font-size:13px;margin-top:14px">'+followers+' '+(followers===1?'person':'people')+' on Tri followed them on Instagram</p>'+
+    (u!=="demo_me"?'<div><span class="pill mutual">🤝 You followed each other on Instagram</span></div>':'')+
+    '<div style="margin-top:18px"><button class="btn btn-ghost" onclick="go(\'tree\')">← Back to my tree</button></div>';
+  go('profile');
+}
+
+/* ---------- navigation ---------- */
+function go(name){
+  ["landing","tree","import","profile"].forEach(function(s){
+    document.getElementById("screen-"+s).classList.toggle("active", s===name);
+  });
+  document.getElementById("tabs").classList.toggle("show", name!=="landing");
+  var tabMap={tree:"tree",import:"import",profile:"profile"};
+  document.querySelectorAll(".tab").forEach(function(t){
+    t.classList.toggle("active", t.getAttribute("data-tab")===tabMap[name]);
+  });
+  window.scrollTo(0,0);
+}
+
+renderTree();
+</script>
+</body>
+</html>

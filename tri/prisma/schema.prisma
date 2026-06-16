@@ -1,0 +1,45 @@
+// Tri — data model
+// Compliant design: we never scrape Instagram. We ingest the user's own
+// official data export ("following.json") and match people by IG username.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  // The Instagram handle this person is claiming. Lowercased, no leading "@".
+  // This is the key everyone else's follow-list matches against.
+  igUsername  String   @unique
+  displayName String
+  passwordHash String
+  bio         String?
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+
+  // People THIS user followed on Instagram (parsed from their export).
+  follows     Follow[]
+}
+
+model Follow {
+  id              String   @id @default(cuid())
+  owner           User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId         String
+  // The Instagram handle the owner followed. Lowercased. Matches User.igUsername
+  // when/if that person joins Tri.
+  targetUsername  String
+  // Optional friendly value captured from the export, if present.
+  targetHref      String?
+  followedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  @@unique([ownerId, targetUsername])
+  @@index([targetUsername])
+}

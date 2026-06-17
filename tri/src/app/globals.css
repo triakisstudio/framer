@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0a12;
+  --surface: #15131f;
+  --surface-2: #1d1a2b;
+  --border: #2a2640;
+  --foreground: #f2f0fb;
+  --muted: #a59fc4;
+  --brand: #c084fc;
+  --brand-2: #f472b6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: dark;
+  /* Prevent the iOS pull-to-refresh / rubber-band on the app shell. */
+  overscroll-behavior-y: none;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* Roomier tap targets for interactive controls on touch devices. */
+@media (hover: none) {
+  button,
+  a {
+    touch-action: manipulation;
+  }
+}
+
+.tri-gradient-text {
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tri-aurora {
+  background:
+    radial-gradient(60rem 60rem at 20% -10%, rgba(192, 132, 252, 0.18), transparent 60%),
+    radial-gradient(50rem 50rem at 90% 10%, rgba(244, 114, 182, 0.14), transparent 55%);
+}
+
+/* Subtle pulse for newly-reconnected friends in the tree. */
+@keyframes tri-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.tri-pulse { animation: tri-pulse 2.2s ease-in-out infinite; }
